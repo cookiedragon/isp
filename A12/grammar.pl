@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% wer ist der opa von der tante von heidi
+% wer ist der sohn von dem opa von heidi? -> hannes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 s(SemS) --> np(Wer,_,_,_), vp(Wer,_,_,SemS), end(fs).
 s(SemS) --> ip(Wer), vp(Wer,_,_,SemS), end(qm).
