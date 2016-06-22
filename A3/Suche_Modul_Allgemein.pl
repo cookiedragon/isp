@@ -2,34 +2,34 @@ solve(Strategy):-
   start_description(StartState),
   solve((start, StartState, _), Strategy).
 
-solve(StartNode, Strategy) :-
+solve(StartNode,Strategy) :-
   start_node(StartNode),
-  search([[StartNode]], Strategy, Path), % init maxLength
-  reverse(Path, _Path_in_correct_order),
+  search([[StartNode]],Strategy,Path),
+  reverse(Path,_Path_in_correct_order),
+%  write_solution(Path_in_correct_order),
   length(Path,L), write('Laenge des Pfades: '), write(L).
-  %write_solution(Path_in_correct_order).
 
 % abbruch: wenn zielzustand erreicht, wird der aktuelle pfad an 3. param
 % variable hier fuer maxlength
-search([[FirstNode | Predecessors] | _], _, [FirstNode | Predecessors]) :- 
+search([[FirstNode|Predecessors]|_],_,[FirstNode|Predecessors]) :- 
   goal_node(FirstNode),
-  nl, write('SUCCESS'), nl, !.
+  nl,write('SUCCESS'),nl,!.
 
 % suche die loesung
 % variable hier fuer maxlength, checke zum anfang, ob Pfad/Solution kleiner als maxlength
-search([[FirstNode | Predecessors] | RestPaths], Strategy, Solution) :-
-  expand(FirstNode, Children), % nachfolge zustaende berechnen
-  generate_new_paths(Children, [FirstNode | Predecessors], NewPaths), % nachfolge zustaende einbauen
-  insert_new_paths(Strategy, NewPaths, RestPaths, AllPaths), % neue pfade einsortieren
-  search(AllPaths, Strategy, Solution).
+search([[FirstNode|Predecessors]|RestPaths],Strategy,Solution) :- 
+  expand(FirstNode,Children),                                    % Nachfolge-Zustände berechnen
+  generate_new_paths(Children,[FirstNode|Predecessors],NewPaths), % Nachfolge-Zustände einbauen 
+  insert_new_paths(Strategy,NewPaths,RestPaths,AllPaths),        % Neue Pfade einsortieren
+  search(AllPaths,Strategy,Solution).
   
 %% weitere search
 % wenn maxlength erreicht, dann duerfen wir nicht mehr expandieren, sondern tun so, als wuerden wir keine weiteren kindsknoten mehr finden. Hoeren also auf zu expandieren. wenn wir keine loesung finden, wird maxlength hoeher gesetzt.
 
 % nachfolge zustaende einbauen
-generate_new_paths(Children, Path, NewPaths):-
-  maplist(get_state, Path, States), % alle stati extrahieren
-  generate_new_paths_help(Children, Path, States, NewPaths).
+generate_new_paths(Children,Path,NewPaths):-
+  maplist(get_state,Path,States), % alle stati extrahieren
+  generate_new_paths_help(Children,Path,States,NewPaths).
 
 % abbruch: wenn alle kindknoten abgearbeitet sind
 generate_new_paths_help([],_,_,[]).
@@ -47,30 +47,30 @@ generate_new_paths_help([FirstChild|RestChildren],Path,States,[[FirstChild|Path]
 get_state((_,State,_),State).
 
 % alle strategien: keine neue pfade vorhanden
-insert_new_paths(_Strategy, [], OldPaths, OldPaths):-
-  %write_fail(Strategy, OldPaths), 
+insert_new_paths(_Strategy,[],OldPaths,OldPaths):-
+%  write_fail(Strategy,OldPaths),
   !.
 
 % Tiefensuche normal
 % suche kindknoten vom ersten, durchsuche ersten kindknoten, haenge neue vorne an
-insert_new_paths(depth, NewPaths, OldPaths, AllPaths):-
-  append(NewPaths, OldPaths, AllPaths).
-  %write_action(NewPaths).
+insert_new_paths(depth,NewPaths,OldPaths,AllPaths):-
+  append(NewPaths,OldPaths,AllPaths).
+%  write_action(NewPaths).
 
 % Breitensuche
 % suche alle kindknoten von bekannten knoten und haenge die neuen hinten an
-insert_new_paths(breadth, NewPaths, OldPaths, AllPaths):-
-  append(OldPaths, NewPaths, AllPaths).
-  %write_next_state(AllPaths),
-  %write_action(AllPaths).
+insert_new_paths(breadth,NewPaths,OldPaths,AllPaths):-
+  append(OldPaths,NewPaths,AllPaths).
+%  write_next_state(AllPaths),
+%  write_action(AllPaths).
 
 % A*
 % sortiere die neuen zustaende nach heuristik (kosten vom Start + geschaetzte Kosten zum Ziel)
 insert_new_paths(astar, NewPaths, OldPaths, AllPaths):-
   eval_paths(astar, NewPaths),
   insert_new_paths_informed(NewPaths, OldPaths, AllPaths).
-  %write_action(AllPaths),
-  %write_state(AllPaths).
+%  write_action(AllPaths),
+%  write_state(AllPaths).
 
 % Optimistisches Bergsteigen
 % sortiert nach heuristik (kosten vom Start), verwenden nur den besten pfad, schmeissen alle anderen weg
@@ -78,9 +78,9 @@ insert_new_paths(ob, NewPaths, _, [BestPath]):-
   eval_paths(ob, NewPaths),
   insert_new_paths_informed(NewPaths, [], [BestPath|_Verworfen]),
   cheaper2(BestPath). % check nochmal
-  %write_Verworfen(Verworfen),
-  %write_action([BestPath]),
-  %write_state([BestPath]).
+%  write_Verworfen(Verworfen),
+%  write_action([BestPath]),
+%  write_state([BestPath]).
 
 % Bergsteigen mit Backtracking
 % wie ob, aber: neue pfade werden sortiert und komplett vor alle alten gepackt
@@ -88,16 +88,16 @@ insert_new_paths(bergback, NewPaths, OldPaths, AllPaths):-
   eval_paths(bergback, NewPaths),
   insert_new_paths_informed(NewPaths, [], SortedNewPaths),
   lists:append(SortedNewPaths, OldPaths, AllPaths).
-  %write_action(AllPaths),
-  %write_state(AllPaths).
+%  write_action(AllPaths),
+%  write_state(AllPaths).
 
 % Gierige Bestensuche
 % wie a*, aber nur mit einfacher heuristik (Kosten vom Start)
 insert_new_paths(gierig, NewPaths, OldPaths, AllPaths):-
   eval_paths(gierig, NewPaths),
   insert_new_paths_informed(NewPaths, OldPaths, AllPaths).
-  %write_action(AllPaths),
-  %write_state(AllPaths).
+%  write_action(AllPaths),
+%  write_state(AllPaths).
 
 % checke das erste und zweite element einer liste
 cheaper2([(_, _, _),(_, _, _)]).
@@ -147,3 +147,5 @@ eval_used_time([CurrentStrategy|Rest]):-
    write('###########################################'),
    nl.
 
+compare():-
+	eval_used_time([depth, breadth, astar, ob, bergback, gierig]).

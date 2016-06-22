@@ -1,74 +1,71 @@
-﻿/*
+
 start_description([
-        block(block1),
-        block(block2),
-        block(block3),
-        block(block4), 
-        block(block5), 
-        block(block6), 
-        on(table,block2),
-        on(table,block3),
-        on(block2,block1),
-        on(table,block4), 
-        on(block3,block5),
-        on(block4,block6),
-        clear(block1),
-        clear(block5),
-        clear(block6),
-        handempty
+				block(block1),
+				block(block2),
+				block(block3),
+				block(block4),
+				block(block5),
+				block(block6),
+				on(table,block2),
+				on(table,block6),
+				on(block2,block1),
+				on(block1,block4),
+				on(block4,block3),
+				on(block6,block5),
+				clear(block3),
+				clear(block5),
+				handempty
 ]).
 
 goal_description([
-        block(block1),
-        block(block2),
-        block(block3),
-        block(block4), 
-        block(block5), 
-        block(block6), 
-        on(block4,block2), 
-        on(table,block3),
-        on(table,block1),
-        on(table,block6),
-        on(block1,block4),
-        on(block6,block5),
-        clear(block3),
-        clear(block2),
-        clear(block5),
-        handempty
+				block(block1),
+				block(block2),
+				block(block3),
+				block(block4),
+				block(block5),
+				block(block6),
+				on(table,block1),
+				on(table,block2),
+				on(table,block3),
+				on(block1,block4),
+				on(block4,block6),
+				on(block2,block5),
+				clear(block6),
+				clear(block5),
+				clear(block3),
+				handempty
 ]).
+/*
+start_description([
+  block(block1),
+  block(block2),
+  block(block3),
+  block(block4),  %mit Block4
+  on(table,block2),
+  on(table,block3),
+  on(block2,block1),
+  on(table,block4), %mit Block4
+  clear(block1),
+  clear(block3),
+  clear(block4), %mit Block4
+  handempty
+  ]).
+
+goal_description([
+  block(block1),
+  block(block2),
+  block(block3),
+  block(block4), %mit Block4
+  on(block4,block2), %mit Block4
+  on(table,block3),
+  on(table,block1),
+  on(block1,block4), %mit Block4
+%  on(block1,block2), %ohne Block4
+  clear(block3),
+  clear(block2),
+  handempty
+  ]).
 */
-
-
-start_description([
-        block(block1),
-        block(block2),
-        block(block3),
-        block(block4),  %mit Block4
-        on(table,block2),
-        on(table,block3),
-        on(block2,block1),
-        on(table,block4), %mit Block4
-        clear(block1),
-        clear(block3),
-        clear(block4), %mit Block4
-        handempty
-]).
-
-goal_description([
-        block(block1),
-        block(block2),
-        block(block3),
-        block(block4), %mit Block4
-        on(block4,block2), %mit Block4
-        on(table,block3),
-        on(table,block1),
-        on(block1,block4), %mit Block4
-        on(block1,block2), %ohne Block4
-        clear(block3),
-        clear(block2),
-        handempty
-]).
-
 
 start_node((start,_,_)).
 
@@ -108,9 +105,10 @@ eval_state(State, Value) :-
         lists:subtract(Goal, NochNicht, SchonRichtig),
         heuristik(SchonRichtig, Value).
 
-/*einfache heuristik_help
-heuristik(SchonRichtig,Value):-
-	length(SchonRichtig,Value).
+%einfache heuristik_help
+/*heuristik(SchonRichtig,Value):-
+	length(SchonRichtig,L), 
+	Value is -1 * L.
 */
 % heuristik: zaehle nach art der zustaende und gewichte
 heuristik(SchonRichtig, Value):-
@@ -120,7 +118,7 @@ heuristik(SchonRichtig, Value):-
 		length(OnTableResult, OnTableLength),
 		length(OnResult, OnLength),
 		length(ClearResult, ClearLength),
-		Value is -1 * (OnTableLength * 2 + OnLength + ClearLength).
+		Value is -1 * (OnTableLength * 3 + OnLength + ClearLength * 2).
 
 % hat der aktuelle state diese aktion
 heuristik_help(Name, State, Name):-
@@ -160,5 +158,5 @@ expand_help(State, Name, Result):-
   lists:union(AddList, SubtractResult, Result). % add list umsetzen, alle neuen Stati hinzufuegen
 
 % suche nachfolge zustaende des aktuellen knotens, 
-expand((_, State, _), Result):-
-  findall((Name, NewState, _), expand_help(State, Name, NewState), Result). % finde alle moeglichen Kindknoten, formatiere sie und schreibe sie in Result
+expand((_,State,_),Result):-
+  findall((Name,NewState,_),expand_help(State,Name,NewState),Result).% finde alle moeglichen Kindknoten, formatiere sie und schreibe sie in Result
